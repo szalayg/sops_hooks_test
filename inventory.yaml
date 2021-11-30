@@ -36,3 +36,4 @@ all:
     namespaces:
     - longorn
     - cattle-system
+    - cica
