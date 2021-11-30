@@ -38,3 +38,4 @@ all:
     - cattle-system
     - cica
     - mica
+    - mica
