@@ -1,0 +1,38 @@
+---
+all:
+  children:
+    management:
+      hosts:
+        host:
+    cluster:
+      children:
+        master:
+          hosts:
+            host:
+            host:
+            host:
+        worker:
+          hosts:
+            host:
+            host:
+            host:
+            host:
+
+  vars:
+# install
+    clustername: hooks-test
+    domain: mydomain.com
+    seperator: "-"
+    master:
+    - host
+    - host
+    - host
+    worker:
+    - host
+    - host
+    - host
+    - host
+# config
+    namespaces:
+    - longorn
+    - cattle-system
