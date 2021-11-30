@@ -37,3 +37,4 @@ all:
     - longorn
     - cattle-system
     - cica
+    - mica
