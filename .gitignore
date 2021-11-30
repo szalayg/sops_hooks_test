@@ -1,2 +1,10 @@
 inventory.yaml
 inventory2.yaml
+roles/rke2_agent/templates/config.enc.yaml.j2
+roles/rke2_agent/templates/config.yaml.j2
+roles/rke2_master/templates/config_m0.enc.yaml.j2
+roles/rke2_master/templates/config_m0.yaml.j2
+roles/rke2_master/templates/config_mx.enc.yaml.j2
+roles/rke2_master/templates/config_mx.yaml.j2
+roles/rke2_prepare/templates/registries.enc.yaml.j2
+roles/rke2_prepare/templates/registries.yaml.j2
