@@ -1,5 +1,7 @@
 # SOPS und Git mit Git Hooks
 
+
+
 Um das Leben um Verschlüsseln und Entschlüsseln von Git-versionierten Dateien zu erleichtern, eignet sich eine von Git selbst angebotene Methode sehr gut: mit Git Hooks können vor und nach bestimmten Schritten verschiedene Skripte aufrufen. Die sind per default unter `$GIT_VERZEICHNIS\.git\hooks\`mit den Namen `applypatch-msg commit-msg fsmonitor-watchman post-update pre-applypatch pre-commit pre-merge-commit prepare-commit-msg pre-push pre-rebase pre-receive update `
 
 zu finden. An sich sind die nicht in enabled Status, daher heissen die `$DATEI.sample` . Mit dem Entfernern der .sample suffix können die eingeschaltet werden.
@@ -23,18 +25,20 @@ insgesamt 56
 
 Die hier eingepflegten Skripte werden (falls eingeschaltet) mit den üblichen Git Aktionen automatisch aufgerufen.
 
-In unserem Fall werden leicht angepasste Skripte von Github verwendet: der Inhalt der Repo https://github.com/richardfan1126/sops-githooks entspricht fast 100%-ig unseren Zielen. Die Anpassung bezieht sich auf die age-Keys: die ursprüngliche Idee verwendet GPG-Schlüssel, wir haben und aber für `age` entschieden. Daher wird bei der Entschlüsselung automatisch die erste Zeile in der Datei `~HOME/.config/sops/age/keys.txt` mit public key genommen und verarbeitet. Da lokalen Hooks nicht mit den entfernten Repos synchronisiert werden, speichern wir auch diese Skripte in unserem git-Root Verzeichnis. Bei dieser Methode stehen uns zwei Lösungen zur Verfügung: entweder den Inhalt nach `./.git/hooks/` zu kopieren, oder fit so zu konfigurieren, dass diese Dateien für Hooks verwendet werden. ***Vorsicht, die Schritte sollen in allen unabhängigen Git Repos ausgeführt werden!***
+In unserem Fall werden leicht angepasste Skripte von Github verwendet: der Inhalt der Repo https://github.com/richardfan1126/sops-githooks entspricht fast 100%-ig unseren Zielen. Die Anpassung bezieht sich auf die age-Keys: die ursprüngliche Idee verwendet GPG-Schlüssel, wir haben und aber für `age` entschieden. Daher wird bei der Entschlüsselung automatisch die erste Zeile in der Datei `~HOME/.config/sops/age/keys.txt` mit public key genommen und verarbeitet. Da lokalen Hooks nicht mit den entfernten Repos synchronisiert werden, speichern wir auch diese Skripte in unserem git-Root Verzeichnis. Bei dieser Methode stehen uns zwei Lösungen zur Verfügung: entweder den Inhalt nach `./.git/hooks/` zu kopieren, oder Git so zu konfigurieren, dass diese Dateien für Hooks verwendet werden. 
+
+***Vorsicht, die Schritte sollen in allen unabhängigen Git Repos ausgeführt werden!***
 
 Sollte unsere Git Version höher als 2.9 sein, genügt der Befehl:
 
 ```shell
-git config core.hooksPath .githooks
+git config core.hooksPath ${HOOKSVERZEICHNIS}
 ```
 
 Sollte er eine frühere Version sein, kann man mit Symlinks umgehen: 
 
 ```shell
-find .git/hooks -type l -exec rm {} \; && find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
+find .git/hooks -type l -exec rm {} \; && find ${HOOKSVERZEICHNIS} -type f -exec ln -sf ../../{} .git/hooks/ \;
 ```
 
 Damit können wir auch unseren Hooks in Git speichern, so dass die bei jedem einsatzbereit sind, und wir doch keine sensitiven Daten mit anderen teilen: keine Datei, die zum Entschlüsseln erforderlich ist, landet damit im Git.
@@ -68,5 +72,59 @@ drwxr-xr-x 1 gszalay users  200  2. Dez 15:18 .
 #date
 Do 2. Dez 15:23:22 CET 2021
 gszalay@localhost:~/sops_hooks_test> 
+```
+
+Beim Hinzufügen einer neuer Datei muss man darauf achten, dass die der Liste hinzugefügt wird. Die Logik der Skript ist nicht äußerst kompliziert: prüft die Dateinamen, und verschlüsselt die alle in einer Schleife. Fehlt die neue Datei, wird die nicht verschlüsselt.
+
+
+
+## Dateien inkludieren und exkludieren
+
+Die Verschlüssleung an sich tut aber noch nichts dafür, dass wir die kritischen Informationen nicht mit Git synchen. In der `.gitignore` Datei müssen wir genau behaupten, was mit anderen geteilt werden kann und was gar nicht. In unseren Fall sieht es wie folgt aus:
+
+
+
+```shell
+gszalay@localhost:~/sops_hooks_test> more .gitignore 
+
+roles/rke2_agent/templates/config.enc.yaml.j2
+roles/rke2_agent/templates/config.yaml.j2
+roles/rke2_master/templates/config_m0.enc.yaml.j2
+roles/rke2_master/templates/config_m0.yaml.j2
+roles/rke2_master/templates/config_mx.enc.yaml.j2
+roles/rke2_master/templates/config_mx.yaml.j2
+roles/rke2_prepare/templates/registries.enc.yaml.j2
+roles/rke2_prepare/templates/registries.yaml.j2
+inventories/inventory*.yaml
+!inventories/*enc*
+```
+
+
+
+***Die Auflistung ist aus zwei Hinsichten besonders interessant***
+
+Und man muss die auch beim Hinzufügen neuer Dateien beachten. 
+
+### Ignorierte Dateien und git add
+
+`roles/rke2_master/templates/config_m0.enc.yaml.j2` steht in der .gitignore Datei, wir aber immer wieder mit Git abgeglichen. Wieso?
+
+Mit `git add roles/rke2_master/templates/config_m0.enc.yaml.j2` kann man dafür sorgen, dass explizit ignorierte Dateien doch synchronisiert werden. Mit denen muss man aber vorsichtig umgehen: da die nicht automatisch beim Aufrufen von `git status` angezeigt werden, müssen die einzeln erlaubt werden. Aufwändig und nicht hundertprozentig sicher, da man immer wieder etwas vergessen kann.
+
+In der `.gitignore` kann man aber auch Anti-Patterns definieren: Dateien, die unbeding synchronisiert werden ***müssen***.  Die werden mit `!` am Zeilenanfang gekennzeichnet, im obigen Beispiel:
+
+```shell
+!inventories/*enc*
+```
+
+Die Reihenfolge der Einträge ist auch wichtig: wenn die inkludierten Dateien einer grundsätzlich exkludierten Pattern entsprechen, müssen die nach der Ignore-Definition angegeben werden, damit Git die als Ausnahme erkennt:
+
+
+
+```shell
+#Wir möchten keine inventory Datei unverscchlüsslet hochladen
+inventories/inventory*.yaml
+#Wir wollen aber, dass die verschlüsselten Versionen in demselben Verzeichnis doch synchronisiert sind
+!inventories/*enc*
 ```
 
