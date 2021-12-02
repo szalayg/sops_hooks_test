@@ -6,5 +6,5 @@ roles/rke2_master/templates/config_mx.enc.yaml.j2
 roles/rke2_master/templates/config_mx.yaml.j2
 roles/rke2_prepare/templates/registries.enc.yaml.j2
 roles/rke2_prepare/templates/registries.yaml.j2
-!inventories/*enc*
 inventories/inventory*.yaml
+!inventories/*enc*
