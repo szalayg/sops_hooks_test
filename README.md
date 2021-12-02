@@ -43,3 +43,30 @@ Damit können wir auch unseren Hooks in Git speichern, so dass die bei jedem ein
 
 Eine wichtige Voraussetzung für die Logik ist eine Liste der zu verschlüsselnden Dateien in einer Texdtatei in git Root Verzeichnis: `.secret_files` . Die dürfen sowohl relativen als auch absoluten Pfaden erhalten. Sinnvoll ist es natürlich, die auf den Git Repo zu beschränken. 
 
+Die Datei muss ganz genau allen betroffenen Dateinamen beinhalten, damit die Verschlüsselung gewährleistet ist. In unserem Beispiel etwa so:
+
+```shell
+gszalay@localhost:~/sops_hooks_test> more .secret_files ; ls -larth inventories; date
+#more .secret_files
+inventories/inventory.yaml
+inventories/inventory2.yaml
+inventories/inventory3.yaml
+roles/rke2_agent/templates/config.yaml.j2
+roles/rke2_master/templates/config_m0.yaml.j2
+roles/rke2_master/templates/config_mx.yaml.j2
+roles/rke2_prepare/templates/registries.yaml.j2
+#ls -larth inventories
+insgesamt 24K
+-rw-r--r-- 1 gszalay users  558 30. Nov 14:47 inventory2.yaml
+-rw-r--r-- 1 gszalay users 3,7K 30. Nov 14:49 inventory2.enc.yaml
+-rw------- 1 gszalay users  580 30. Nov 15:07 inventory.yaml
+-rw-r--r-- 1 gszalay users 3,9K 30. Nov 15:08 inventory.enc.yaml
+-rw-r--r-- 1 gszalay users  558  2. Dez 15:13 inventory3.yaml
+drwxr-xr-x 1 gszalay users  268  2. Dez 15:18 ..
+-rw-r--r-- 1 gszalay users 3,7K  2. Dez 15:18 inventory3.enc.yaml
+drwxr-xr-x 1 gszalay users  200  2. Dez 15:18 .
+#date
+Do 2. Dez 15:23:22 CET 2021
+gszalay@localhost:~/sops_hooks_test> 
+```
+
