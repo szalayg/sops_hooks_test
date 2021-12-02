@@ -22,3 +22,22 @@ insgesamt 56
 ```
 
 Die hier eingepflegten Skripte werden (falls eingeschaltet) mit den üblichen Git Aktionen automatisch aufgerufen.
+
+In unserem Fall werden leicht angepasste Skripte von Github verwendet: der Inhalt der Repo https://github.com/richardfan1126/sops-githooks entspricht fast 100%-ig unseren Zielen. Die Anpassung bezieht sich auf die age-Keys: die ursprüngliche Idee verwendet GPG-Schlüssel, wir haben und aber für `age` entschieden. Daher wird bei der Entschlüsselung automatisch die erste Zeile in der Datei `~HOME/.config/sops/age/keys.txt` mit public key genommen und verarbeitet. Da lokalen Hooks nicht mit den entfernten Repos synchronisiert werden, speichern wir auch diese Skripte in unserem git-Root Verzeichnis. Bei dieser Methode stehen uns zwei Lösungen zur Verfügung: entweder den Inhalt nach `./.git/hooks/` zu kopieren, oder fit so zu konfigurieren, dass diese Dateien für Hooks verwendet werden. ***Vorsicht, die Schritte sollen in allen unabhängigen Git Repos ausgeführt werden!***
+
+Sollte unsere Git Version höher als 2.9 sein, genügt der Befehl:
+
+```shell
+git config core.hooksPath .githooks
+```
+
+Sollte er eine frühere Version sein, kann man mit Symlinks umgehen: 
+
+```shell
+find .git/hooks -type l -exec rm {} \; && find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
+```
+
+Damit können wir auch unseren Hooks in Git speichern, so dass die bei jedem einsatzbereit sind, und wir doch keine sensitiven Daten mit anderen teilen: keine Datei, die zum Entschlüsseln erforderlich ist, landet damit im Git.
+
+*Als der README geschrieben wird, verwendet SUSE git version 2.26.2, git config sollte ohne weiteres überall funktionieren.*
+
