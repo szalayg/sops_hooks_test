@@ -41,3 +41,5 @@ Damit können wir auch unseren Hooks in Git speichern, so dass die bei jedem ein
 
 *Als der README geschrieben wird, verwendet SUSE git version 2.26.2, git config sollte ohne weiteres überall funktionieren.*
 
+Eine wichtige Voraussetzung für die Logik ist eine Liste der zu verschlüsselnden Dateien in einer Texdtatei in git Root Verzeichnis: `.secret_files` .
+
