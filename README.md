@@ -244,3 +244,4 @@ gszalay@localhost:~/sops_hooks_test>
 
 ```
 
+Wie auch im Beispiel: sollte eine neue Datei zum Synchronisieren angelegt werden, muss die auch explizit mit `git add *` der Git-Struktur hinzugefügt werden.
