@@ -122,7 +122,7 @@ Die Reihenfolge der Einträge ist auch wichtig: wenn die inkludierten Dateien ei
 
 
 ```shell
-#Wir möchten keine inventory Datei unverscchlüsslet hochladen
+#Wir möchten keine inventory Datei unverscchlüsselt hochladen
 inventories/inventory*.yaml
 #Wir wollen aber, dass die verschlüsselten Versionen in demselben Verzeichnis doch synchronisiert sind
 !inventories/*enc*
