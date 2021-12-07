@@ -1,0 +1,92 @@
+---
+- name: Say hello
+  debug:
+    msg: "Running on {{ inventory_hostname }}"
+
+- name: Prepare config.yaml for the first master
+  template:
+    src: config_m0.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+  become: yes
+  when: "inventory_hostname == master[0]"
+
+- name: Prepare config.yaml for further masters
+  template:
+    src: config_mx.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+  become: yes
+  when: "inventory_hostname != master[0]"
+
+- name: Enable service rke2-server
+  systemd:
+    name: rke2-server.service
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  become: yes
+  when: "'master' in group_names"
+
+- name: Get kubectl binary
+  fetch:
+    src: /var/lib/rancher/rke2/bin/kubectl
+    dest: /usr/bin/
+    flat: yes
+    mode: u=+rwx,g=+rx,o=+x
+  become: yes
+  when: "inventory_hostname == master[0]"
+
+  
+- name: Set up kubectl autocomplete on localhost
+  command: '/usr/bin/kubectl completion bash >/etc/bash_completion.d/kubectl'
+  become: yes
+  delegate_to: localhost
+
+- name: Get kubeconfig yaml
+  fetch:
+    src: /etc/rancher/rke2/rke2.yaml
+    dest: /home/sles/kubeconfigs/{{ cluster-name }}.yaml
+    flat: yes
+    owner: sles
+  become: yes
+  when: "inventory_hostname == master[0]"
+  
+- name: Modify kubeconfig.yaml
+  lineinfile:
+    path: /home/sles/kubeconfigs/{{ cluster-name }}.yaml
+    regexp: "^    server: https://127.0.0.1:6443"
+    line: "    server: https://{{ cluster-lb }}:6443"
+    state: present
+  when: "inventory_hostname == master[0]"
+  delegate_to: localhost
+  
+
+- name: Create a symbolic link to kubectl
+  ansible.builtin.file:
+    src: /var/lib/rancher/rke2/bin/kubectl
+    dest: /usr/bin/kubectl
+    mode: u=+rwx,g=+rx,o=+x
+    state: link
+  become: yes
+  
+- name: Set up kubectl autocomplete on remote host
+  command: '/usr/bin/kubectl completion bash >/etc/bash_completion.d/kubectl'
+  become: yes
+
+- name: Inform user
+  debug:
+    msg: "Finished: {{ inventory_hostname }}"
+
+- name: Ask for patience
+  debug:
+    msg: "Waiting for seven minutes, please check the status by running the command: journalctl -u rke2-server.service -f on {{ inventory_hostname }}"
+  when: "inventory_hostname == master[0]"
+
+- name: Wait for the first master coming up
+  pause:
+    seconds: 420
+  when: "inventory_hostname == master[0]"
+
+- name: Wait for the further masters coming up
+  pause:
+    seconds: 420
+  when: "inventory_hostname != master[0]"

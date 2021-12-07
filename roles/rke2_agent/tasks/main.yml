@@ -1,0 +1,24 @@
+---
+- name: Say hello
+  debug:
+    msg: "Running on {{ inventory_hostname }}"
+
+- name: Prepare config.yaml for workers
+  template:
+    src: config.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+  become: yes
+  when: "'worker' in group_names"
+
+- name: Enable service rke2-agent
+  systemd:
+    name: rke2-server.service
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  become: yes
+  when: "'worker' in group_names"
+
+- name: Inform user
+  debug:
+    msg: "Finished. Please check the status by running the command: journalctl -u rke2-agent.service -f on {{ inventory_hostname }}"

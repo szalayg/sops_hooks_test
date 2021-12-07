@@ -1,0 +1,108 @@
+---
+- name: Say hello
+  debug:
+    msg: "Running on {{ inventory_hostname }}"
+
+- name: Check images directory
+  file:
+    path: /var/lib/rancher/rke2/agent/images/
+    state: directory
+    owner: root
+    group: root
+  become: yes
+
+- name: Check /etc/rancher/rke2 directory
+  file:
+    path: /etc/rancher/rke2/
+    state: directory
+    owner: root
+    group: root
+  become: yes
+
+- name: Check cert directory
+  file:
+    path: /var/lib/rancher/rke2/server/tls/
+    state: directory
+    owner: root
+    group: root
+  become: yes
+
+- name: Copy images to host/tmp
+  copy:
+    src: rke2-images.linux-amd64.tar.zst
+    dest: /tmp/rke2-images.linux-amd64.tar.zst
+  become: yes
+
+- name: Move images to their place
+  copy:
+    src: /tmp/rke2-images.linux-amd64.tar.zst
+    remote_src: yes
+    dest: /var/lib/rancher/rke2/agent/images/rke2-images.linux-amd64.tar.zst
+  become: yes
+
+- name: Copy binaries
+  copy:
+    src: rke2.linux-amd64.tar.gz
+    dest: /tmp/rke2.linux-amd64.tar.gz
+  become: yes
+
+- name: Extract binaries
+  unarchive:
+    src: /tmp/rke2.linux-amd64.tar.gz
+    remote_src: yes
+    dest: /usr/local
+  become: yes
+
+- name: Add etcd user
+  user:
+    name: etcd
+    system: yes
+    create_home: no
+    shell: /sbin/nologin
+    comment: "etcd user"
+    state: present
+  become: yes
+
+- name: Prepare registries.yaml
+  template:
+    src: registries.yaml.j2
+    dest: /usr/local/registries.yaml
+  become: yes
+
+- name: Prepare certificates 1
+  copy:
+    src: server-ca.crt
+    dest: /var/lib/rancher/rke2/server/tls/
+    #dest: /tmp/
+    mode: 0644
+  become: yes
+
+- name: Prepare certificates 2
+  copy:
+    src: server-ca.key
+    dest: /var/lib/rancher/rke2/server/tls/
+    #dest: /tmp/
+    mode: 0600
+  become: yes
+
+- name: Prepare sysconfig for missing tls-san
+  copy:
+    src: rke2-server
+    dest: /etc/sysconfig/
+    mode: 0644
+  become: yes
+
+- name: Prepare sysconfig for kubelet config, step one
+  copy:
+    src: 90-kubelet.conf
+    dest: /etc/sysctl.d/
+    mode: 0644
+  become: yes
+
+- name: Prepare sysconfig for kubelet config, step two
+  command: sysctl -p /etc/sysctl.d/90-kubelet.conf
+  become: yes
+
+- name: Inform user
+  debug:
+    msg: "Prepared: {{ inventory_hostname }}"
