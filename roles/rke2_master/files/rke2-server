@@ -1,0 +1,1 @@
+GODEBUG=x509ignoreCN=0
