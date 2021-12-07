@@ -128,3 +128,72 @@ inventories/inventory*.yaml
 !inventories/*enc*
 ```
 
+Werden neue Dateien angelegt, müssen wir uns also Gedanken machen: sollten die inhaltlich geschützt werden, müssen wir die den entsprechenden Dateien hinzufügen, wenn die noch nicht abgedeckt sind. Wie in diesem Beispiel:
+
+```shell
+#Git Status: alles abgeglichen
+gszalay@localhost:~/sops_hooks_test> git status
+Auf Branch main
+Ihr Branch ist auf demselben Stand wie 'origin/main'.
+
+nichts zu committen, Arbeitsverzeichnis unverändert
+gszalay@localhost:~/sops_hooks_test> ls inventories
+inventory2.enc.yaml  inventory2.yaml  inventory3.enc.yaml  inventory3.yaml  inventory.enc.yaml  inventory.yaml
+#Anlegen neuer Datei: eine weitere Kopie der üblichen Dummy-Inventur
+gszalay@localhost:~/sops_hooks_test> cp inventories/inventory3.yaml inventories/inventory4.yaml
+#Wegen .gitignore wird der nicht angezeigt
+gszalay@localhost:~/sops_hooks_test> git status
+Auf Branch main
+Ihr Branch ist auf demselben Stand wie 'origin/main'.
+
+nichts zu committen, Arbeitsverzeichnis unverändert
+#Wir stellen sicher, dass die verschlüsselt wird
+gszalay@localhost:~/sops_hooks_test> echo inventories/inventory4.yaml | tee -a .secret_files 
+inventories/inventory4.yaml
+#Git sieht jetzt eine Änderung
+gszalay@localhost:~/sops_hooks_test> git status
+Auf Branch main
+Ihr Branch ist auf demselben Stand wie 'origin/main'.
+
+Änderungen, die nicht zum Commit vorgemerkt sind:
+  (benutzen Sie "git add <Datei>...", um die Änderungen zum Commit vorzumerken)
+  (benutzen Sie "git restore <Datei>...", um die Änderungen im Arbeitsverzeichnis zu verwerfen)
+        geändert:       .secret_files
+
+keine Änderungen zum Commit vorgemerkt (benutzen Sie "git add" und/oder "git commit -a")
+#Git commit
+gszalay@localhost:~/sops_hooks_test> git commit -a -m "Check new file"
+inventories/inventory4.yaml modified, please commit again
+#Hooks haben verschlüsselt
+gszalay@localhost:~/sops_hooks_test> git status
+Auf Branch main
+Ihr Branch ist auf demselben Stand wie 'origin/main'.
+
+Änderungen, die nicht zum Commit vorgemerkt sind:
+  (benutzen Sie "git add <Datei>...", um die Änderungen zum Commit vorzumerken)
+  (benutzen Sie "git restore <Datei>...", um die Änderungen im Arbeitsverzeichnis zu verwerfen)
+        geändert:       .secret_files
+
+Unversionierte Dateien:
+  (benutzen Sie "git add <Datei>...", um die Änderungen zum Commit vorzumerken)
+  #Hier ist unsere verschlüsselte Datei
+        inventories/inventory4.enc.yaml
+
+keine Änderungen zum Commit vorgemerkt (benutzen Sie "git add" und/oder "git commit -a")
+#Wieder Commit
+gszalay@localhost:~/sops_hooks_test> git commit -a -m "Check new file"
+[main abf9fd3] Check new file
+ 1 file changed, 1 insertion(+)
+#Git push
+gszalay@localhost:~/sops_hooks_test> git push
+Objekte aufzählen: 5, Fertig.
+Zähle Objekte: 100% (5/5), Fertig.
+Komprimiere Objekte: 100% (3/3), Fertig.
+Schreibe Objekte: 100% (3/3), 300 Bytes | 300.00 KiB/s, Fertig.
+Gesamt 3 (Delta 2), Wiederverwendet 0 (Delta 0), Pack wiederverwendet 0
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To github.com:szalayg/sops_hooks_test.git
+   3967df6..abf9fd3  main -> main
+
+```
+
