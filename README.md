@@ -194,6 +194,53 @@ Gesamt 3 (Delta 2), Wiederverwendet 0 (Delta 0), Pack wiederverwendet 0
 remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
 To github.com:szalayg/sops_hooks_test.git
    3967df6..abf9fd3  main -> main
+gszalay@localhost:~/sops_hooks_test> git status
+Auf Branch main
+Ihr Branch ist auf demselben Stand wie 'origin/main'.
+
+Änderungen, die nicht zum Commit vorgemerkt sind:
+  (benutzen Sie "git add <Datei>...", um die Änderungen zum Commit vorzumerken)
+  (benutzen Sie "git restore <Datei>...", um die Änderungen im Arbeitsverzeichnis zu verwerfen)
+        geändert:       README.md
+
+Unversionierte Dateien:
+  (benutzen Sie "git add <Datei>...", um die Änderungen zum Commit vorzumerken)
+        inventories/inventory4.enc.yaml
+
+keine Änderungen zum Commit vorgemerkt (benutzen Sie "git add" und/oder "git commit -a")
+gszalay@localhost:~/sops_hooks_test> git commit -a -m "Add new inventory"
+[main b434356] Add new inventory
+ 1 file changed, 69 insertions(+)
+#Prüfe die Änderungen
+gszalay@localhost:~/sops_hooks_test> git status
+Auf Branch main
+Ihr Branch ist 1 Commit vor 'origin/main'.
+  (benutzen Sie "git push", um lokale Commits zu publizieren)
+
+Unversionierte Dateien:
+  (benutzen Sie "git add <Datei>...", um die Änderungen zum Commit vorzumerken)
+        inventories/inventory4.enc.yaml
+
+nichts zum Commit vorgemerkt, aber es gibt unversionierte Dateien
+(benutzen Sie "git add" zum Versionieren)
+#Neue Inventory wird hinzugefügt
+gszalay@localhost:~/sops_hooks_test> git add *
+gszalay@localhost:~/sops_hooks_test> git commit -a -m "Add new inventory"
+[main 625ce96] Add new inventory
+ 1 file changed, 58 insertions(+)
+ create mode 100644 inventories/inventory4.enc.yaml
+#Wieder Push
+gszalay@localhost:~/sops_hooks_test> git push
+Objekte aufzählen: 10, Fertig.
+Zähle Objekte: 100% (10/10), Fertig.
+Komprimiere Objekte: 100% (7/7), Fertig.
+Schreibe Objekte: 100% (7/7), 3.46 KiB | 885.00 KiB/s, Fertig.
+Gesamt 7 (Delta 4), Wiederverwendet 0 (Delta 0), Pack wiederverwendet 0
+remote: Resolving deltas: 100% (4/4), completed with 3 local objects.
+To github.com:szalayg/sops_hooks_test.git
+   abf9fd3..625ce96  main -> main
+#Jetzt sind wir fertig  
+gszalay@localhost:~/sops_hooks_test> 
 
 ```
 
