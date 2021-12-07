@@ -1,0 +1,23 @@
+---
+- hosts:
+    cluster
+  roles:
+    - role: rke2_prepare
+      tags: prepare
+
+- hosts:
+    master
+  serial:
+    - 1
+    - 2
+    - 10
+  roles:
+    - role: rke2_master
+      tags: masters
+
+- hosts:
+    worker
+  serial: 3
+  roles:
+    - role: rke2_agent
+      tags: workers

@@ -1,0 +1,2 @@
+ansible-playbook main.yaml -i inventories/inventory2.yaml -vv
+ansible-playbook main.yaml -i inventories/inventory2.yaml -vv
